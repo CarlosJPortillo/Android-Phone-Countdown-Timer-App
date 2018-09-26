@@ -5,7 +5,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.carlos.countdowntimerexample.R;
 
@@ -18,15 +20,22 @@ public class MainActivity extends AppCompatActivity {
     private TextView mTextViewCountDown;
     private Button mButtonStartPause;
     private Button mButtonReset;
+    private EditText mEditText;
     //object to keep track of countdown
     private CountDownTimer mCountDownTimer;
 
     private boolean mTimerRunning;
     //time left in the timer
-    private long mTimeLeftInMillis = START_TIME_IN_MILLIS;
+    private long mTimeLeftInMillis;
     //variable that saves time when our timer is supposed to end, important to face lag
     //lag can happen you rotate screen too much
     private long mEndTime;
+
+    int minutes =0;
+    //checks to see if timer isn't paused
+    private boolean mTimerPaused = false;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +44,9 @@ public class MainActivity extends AppCompatActivity {
 
         mTextViewCountDown = findViewById(R.id.text_view_countdown);
 
+        mEditText = (EditText) findViewById(R.id.edit_text1);
+
+
         mButtonStartPause = findViewById(R.id.button_start_pause);
         mButtonReset = findViewById(R.id.button_reset);
         //event listener/handler
@@ -42,11 +54,34 @@ public class MainActivity extends AppCompatActivity {
             @Override
             //event handler
             public void onClick(View v) {
-                if (mTimerRunning) {
-                    pauseTimer();
-                } else {
-                    startTimer();
+                //check to see if input in editText can be parsed
+               try {
+                   minutes = Integer.parseInt(mEditText.getText().toString());
+                   if (mTimerRunning) {
+                       pauseTimer();
+                   } else {
+                       if(minutes >0 && minutes <= 60) {
+                           //checks to see if timer is paused that way you don't reset timer when pushing start
+                           if(mTimerPaused == false) {
+                               mTimeLeftInMillis = 60000 * minutes;
+                           }
+                           startTimer();
+                       }
+                       else{
+                           String negativeResponse = "You can only enter minutes less than 60 and of at least one minute";
+                           Toast.makeText(getApplicationContext(), negativeResponse, Toast.LENGTH_SHORT).show();
+                       }
+                   }
+
+               }
+                catch(NumberFormatException ex){
+                    //android's version of alert
+                    //pass this instance of android application, the response of the message,and how long you
+                    //want the toast to show for
+                    String negativeResponse = "You can only type in whole minute numbers!";
+                    Toast.makeText(getApplicationContext(), negativeResponse, Toast.LENGTH_SHORT).show();
                 }
+
             }
         });
 
@@ -93,6 +128,7 @@ public class MainActivity extends AppCompatActivity {
         mTimerRunning = false;
         mButtonStartPause.setText("Start");
         mButtonReset.setVisibility(View.VISIBLE);
+        mTimerPaused = true;
     }
 
     private void resetTimer() {
